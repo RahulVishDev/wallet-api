@@ -4,15 +4,21 @@ import dotenv from "dotenv";
 import { sql, createPool } from '@vercel/postgres';
 import rateLimit from "./middleware/rateLimiter.js";
 import transactionsRoute from "./routes/transactionsRoute.js"
-
+import job from "./config/cron.js";
 dotenv.config();
 
 const pool = createPool({ connectionString: process.env.DATABASE_URL });
 const app = express()
+
+if(process.env.NODE_ENV === "production") job.start();
 //middleware
 app.use(rateLimit)
 app.use(express.json())
 const PORT = process.env.PORT || 5001
+
+app.get("/api/health", (req,res) => {
+    res.status(200).json({status:"ok"})
+})
 
 async function initDB(){
     try{
